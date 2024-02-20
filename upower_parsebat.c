@@ -86,5 +86,8 @@ int main(int argc, char **argv) {
 		key = argv[1];
 	res = parse_by_key(key);
 	printf("%s\n", res ? res : "key not found");
-	
+	if(res)
+		free(res);
+		return 0;
+	else return 1;
 }
