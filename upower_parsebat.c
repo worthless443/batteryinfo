@@ -32,36 +32,30 @@ static int wildcard_match_key(char *_key,
 
 
 char *key2value(char **lines, int size,char *ikey, char **keyout) {
-	int alloc_size_seed1 = 1 << 5;
-	int alloc_size_seed2 = 1 << 5;
-	char *key = malloc(sizeof(char) * alloc_size_seed1);
-	char *value = malloc(sizeof(char) * alloc_size_seed2);
-
+	char *key = malloc(sizeof(char));
+	char *value = malloc(sizeof(char));
+	int i;
 	for(int a=0,j=-1;a<size - 7;++a) {
-		int i;
 		char *line = lines[a];
 		// TODO use realloc() instead of a static size 
 		for(i=0;line[i] != ':';++i) {
 			key[i] = line[i];
+            key = realloc(key, sizeof(char)*(i + 1));
 			if(i > 20) break;
 		}
 		//keyout[j][0] = *(char*)key;
-		memcpy(keyout[++j], key, strlen(key));
+		memcpy(keyout[++j], key, i);
 		if(wildcard_match_key(ikey,key,i)) {
-			int x = strlen(line);
-			memcpy(value,line + i + 1, strlen(line) - i);
+            value = realloc(value,(strlen(line) - 1)*sizeof(char));
+			memcpy(value,line + i + 1, strlen(line) - i - 1);
+            memset(value + strlen(line) - i - 1, '\0', 4);
 			free(key);
 			for(int i=0;i<size;++i)
 				free(lines[i]);
 			free(lines);
 			return value;
 		}
-		alloc_size_seed1 += i*2;
-		alloc_size_seed2 += i*5;//2*abs((signed char)(strlen(line) - i));
-		key = realloc(key, sizeof(char) * alloc_size_seed1);
-		value = realloc(value, sizeof(char) * alloc_size_seed2);
-		memset(key,'\0', alloc_size_seed1);
-		memset(value,'\0', alloc_size_seed2);
+        memset(key, '\0', i + 1);
 	}
 	free(key);
 	free(value);
@@ -74,11 +68,9 @@ char *parse_by_key(char *key, char **keyout) {
 	keyout[0][0] =  1;
 	FILE *f = popen(cmd, "r");
 	char *buffer = malloc(sizeof(char)*10000);
-	char *tmp = buffer;
 	int size_buffer;
 	int a = 0;
-	int times = 0;
-	int track_a = 0, track_b = 0;
+	int track_b = 0;
 	for(int i=0;fread(buffer + i,1,1,f);++i) {
 		buffer = realloc(buffer, size_buffer=sizeof(char) *(i + 1) * 2);
 	}
@@ -88,6 +80,7 @@ char *parse_by_key(char *key, char **keyout) {
  	for(int i=0,b=-1,nl=0;i<size_buffer/sizeof(char);++i)	{
 		if(nl == 0) {
 			lines[a] = malloc(sizeof(char) * 2);
+			memset(lines[a],'\0', (b + 1) * 10);
 		}
 		if(buffer[i] == '\n') {
 			lines[a][b + 1] = '\0';
@@ -128,7 +121,7 @@ int main(int argc, char **argv) {
 		return 1;
 
 	for(int i=1;i<argc;++i) {
-		if(*(argv[i] + 1) == 'k') {
+		if(*(argv[i] + 1) == 'l') {
 			if(strlen(argv[i]) > 2)
 				kval = atoi(argv[i] + 2);
 			pk = 1;
@@ -150,6 +143,9 @@ int main(int argc, char **argv) {
 	}
 	else
 		printf("%s\n", res ? res : "key not found");
+
+	for(int i=0;i<100;++i)
+		free(keyout[i]);
 	if(res) {
 	free(res);
 	return 0;

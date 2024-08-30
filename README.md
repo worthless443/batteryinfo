@@ -1,9 +1,9 @@
-Parse and deserialize the output of the command `upower -i /org/freedesktop/UPower/devices/battery_BAT0' (of course assuming you have upower installed). 
+Parse and deserialize the output of the command `upower -i /org/freedesktop/UPower/devices/battery_BAT0' (of course assuming you have upower] installed). 
+
 
 Compile this tiny self-contained single file as you would, for example:
-
 ```bash
-gcc upower_parsebat.c -o bat
+gcc upower_parsebat.c -o bat -D__MAIN__
 ```
 
 By default, the program will output the battery percentage if given no arguments.
@@ -13,3 +13,4 @@ For instance, it accepts field names as an argument or short names that linearly
 ```
 ./a.out perc* # short for percentage 
 ```
+
